@@ -64,28 +64,48 @@ class ResidualBlock(layers.Layer):
         return x
 
 
+class TCN(layers.Layer):
+
+    def __init__(self, filters, kernel_size, **kwargs):
+        super(TCN, self).__init__(**kwargs)
+        self.blocks = []
+        self.depth = len(filters)
+        self.kernel_size = kernel_size
+
+        for i in range(self.depth):
+            dilation_size = 2 ** i
+            self.blocks.append(
+                ResidualBlock(filters=filters[i],
+                              kernel_size=kernel_size,
+                              dilation_rate=dilation_size,
+                              name=f"residual_block_{i}")
+            )
+
+        self.slice_layer = layers.Lambda(lambda tt: tt[:, -1, :])
+
+    def call(self, inputs, training=None, **kwargs):
+        x = inputs
+        for block in self.blocks:
+            x = block(x)
+
+        x = self.slice_layer(x)
+        return x
+
+    @property
+    def receptive_field_size(self):
+        return 1 + 2 * (self.kernel_size - 1) * (2 ** self.depth - 1)
+
+
 def build_model(sequence_length, channels, filters, num_classes, kernel_size):
     inputs = Input(shape=(sequence_length, channels), name="inputs")
+    tcn_block = TCN(filters, kernel_size)
+    x = tcn_block(inputs)
 
-    x = inputs
-
-    depth = len(filters)
-
-    receptive_field_size = 1 + 2 * (kernel_size - 1) * (2 ** depth - 1)
-    print(f"Input sequence lenght: {sequence_length}, model receptive field: {receptive_field_size}")
-
-    for i in range(depth):
-        dilation_size = 2 ** i
-        x = ResidualBlock(filters=filters[i],
-                          kernel_size=kernel_size,
-                          dilation_rate=dilation_size,
-                          name=f"residual_block_{i}")(x)
-
-    x = layers.Lambda(lambda tt: tt[:, -1, :])(x)
     outputs = layers.Dense(num_classes,
                            activation="softmax",
                            name="output")(x)
 
     model = Model(inputs, outputs, name="tcn")
 
+    print(f"Input sequence lenght: {sequence_length}, model receptive field: {tcn_block.receptive_field_size}")
     return model

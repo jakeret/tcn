@@ -20,14 +20,14 @@ def load_dataset():
 
 
 def train():
-    levels = 6
-    hidden_units = 25
-    channel_sizes = [hidden_units] * levels
+    depth = 6
+    filters = 25
+    block_filters = [filters] * depth
 
-    model = tcn.build_model(sequence_lenght=28 * 28,
-                            num_inputs=1,
+    model = tcn.build_model(sequence_length=28 * 28,
+                            channels=1,
                             num_classes=10,
-                            num_channels=channel_sizes,
+                            filters=block_filters,
                             kernel_size=8)
 
     model.compile(optimizer="Adam",
@@ -38,8 +38,8 @@ def train():
 
     train_dataset, test_dataset = load_dataset()
 
-    model.fit(train_dataset.take(1000).batch(32),
-              validation_data=test_dataset.take(1000).batch(32),
+    model.fit(train_dataset.batch(32),
+              validation_data=test_dataset.batch(32),
               callbacks=[TensorBoard(str(Path("logs") / datetime.now().strftime("%Y-%m-%dT%H-%M_%S")))],
               epochs=10)
 

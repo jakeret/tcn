@@ -5,7 +5,7 @@ from tensorflow.keras import layers
 class ResidualBlock(layers.Layer):
 
     def __init__(self,
-                 out_channels,
+                 filters,
                  kernel_size,
                  dilation_rate,
                  padding='causal',
@@ -14,10 +14,9 @@ class ResidualBlock(layers.Layer):
                  **kwargs):
         super(ResidualBlock, self).__init__(**kwargs)
 
-        self.out_channels = out_channels
-        filters = out_channels
+        self.filters = filters
 
-        self.causal_conv_1 = layers.Conv1D(filters=filters,
+        self.causal_conv_1 = layers.Conv1D(filters=self.filters,
                                            kernel_size=kernel_size,
                                            dilation_rate=dilation_rate,
                                            padding=padding)
@@ -25,7 +24,7 @@ class ResidualBlock(layers.Layer):
         self.dropout_1 = layers.SpatialDropout1D(rate=dropout_rate)
         self.activation_1 = layers.Activation(activation)
 
-        self.causal_conv_2 = layers.Conv1D(filters=filters,
+        self.causal_conv_2 = layers.Conv1D(filters=self.filters,
                                            kernel_size=kernel_size,
                                            dilation_rate=dilation_rate,
                                            padding=padding)
@@ -37,10 +36,10 @@ class ResidualBlock(layers.Layer):
 
     def build(self, input_shape):
         in_channels = input_shape[-1]
-        if in_channels == self.out_channels:
+        if in_channels == self.filters:
             self.skip_conv = None
         else:
-            self.skip_conv = layers.Conv1D(filters=self.out_channels,
+            self.skip_conv = layers.Conv1D(filters=self.filters,
                                            kernel_size=1)
 
         super(ResidualBlock, self).build(input_shape)
@@ -65,21 +64,19 @@ class ResidualBlock(layers.Layer):
         return x
 
 
-def build_model(sequence_lenght, num_inputs, num_channels, num_classes, kernel_size):
-    inputs = Input(shape=(sequence_lenght, num_inputs), name="inputs")
+def build_model(sequence_length, channels, filters, num_classes, kernel_size):
+    inputs = Input(shape=(sequence_length, channels), name="inputs")
 
     x = inputs
 
-    num_levels = len(num_channels)
+    depth = len(filters)
 
-    receptive_field_size = 1 + 2 * (kernel_size - 1) * (2 ** num_levels - 1)
-    print(f"Input sequence lenght: {sequence_lenght}, model receptive field: {receptive_field_size}")
+    receptive_field_size = 1 + 2 * (kernel_size - 1) * (2 ** depth - 1)
+    print(f"Input sequence lenght: {sequence_length}, model receptive field: {receptive_field_size}")
 
-    for i in range(num_levels):
+    for i in range(depth):
         dilation_size = 2 ** i
-        out_channels = num_channels[i]
-
-        x = ResidualBlock(out_channels,
+        x = ResidualBlock(filters=filters[i],
                           kernel_size=kernel_size,
                           dilation_rate=dilation_size,
                           name=f"residual_block_{i}")(x)

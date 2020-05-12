@@ -1,11 +1,11 @@
 from datetime import datetime
 from pathlib import Path
 
-import tcn
-from tensorflow.keras.callbacks import TensorBoard
-import numpy as np
 import tensorflow as tf
 from tensorflow.keras import losses, metrics
+from tensorflow.keras.callbacks import TensorBoard
+
+import tcn
 
 
 def load_dataset():

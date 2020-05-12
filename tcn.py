@@ -66,11 +66,12 @@ class ResidualBlock(layers.Layer):
 
 class TCN(layers.Layer):
 
-    def __init__(self, filters, kernel_size, **kwargs):
+    def __init__(self, filters, kernel_size, return_sequence=False, **kwargs):
         super(TCN, self).__init__(**kwargs)
         self.blocks = []
         self.depth = len(filters)
         self.kernel_size = kernel_size
+        self.return_sequence = return_sequence
 
         for i in range(self.depth):
             dilation_size = 2 ** i
@@ -81,14 +82,16 @@ class TCN(layers.Layer):
                               name=f"residual_block_{i}")
             )
 
-        self.slice_layer = layers.Lambda(lambda tt: tt[:, -1, :])
+        if not self.return_sequence:
+            self.slice_layer = layers.Lambda(lambda tt: tt[:, -1, :])
 
     def call(self, inputs, training=None, **kwargs):
         x = inputs
         for block in self.blocks:
             x = block(x)
 
-        x = self.slice_layer(x)
+        if not self.return_sequence:
+            x = self.slice_layer(x)
         return x
 
     @property
@@ -96,9 +99,9 @@ class TCN(layers.Layer):
         return 1 + 2 * (self.kernel_size - 1) * (2 ** self.depth - 1)
 
 
-def build_model(sequence_length, channels, filters, num_classes, kernel_size):
+def build_model(sequence_length, channels, filters, num_classes, kernel_size, return_sequence=False):
     inputs = Input(shape=(sequence_length, channels), name="inputs")
-    tcn_block = TCN(filters, kernel_size)
+    tcn_block = TCN(filters, kernel_size, return_sequence)
     x = tcn_block(inputs)
 
     outputs = layers.Dense(num_classes,

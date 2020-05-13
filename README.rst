@@ -11,15 +11,8 @@ The implementation has been tested on the following task contained in this repos
 - Copy memory
 - Text classification on the IMDB movie dataset
 
+The architectural elements of a TCN are a TCN-layer consisting of TCN-residual-blocks consisting of dilated causal convolution (from left to right)
 
 .. image:: https://raw.githubusercontent.com/jakeret/tcn/master/docs/tcn.png
    :alt: Temporal Convolutional Network
-   :align: left
-
-.. image:: https://raw.githubusercontent.com/jakeret/tcn/master/docs/layers.png
-   :alt: Layers
-   :align: left
-
-.. image:: https://raw.githubusercontent.com/jakeret/tcn/master/docs/residual_block.png
-   :alt: Residual block
    :align: left

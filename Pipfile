@@ -8,10 +8,8 @@ verify_ssl = true
 [packages]
 tensorflow = ">=2.1.0"
 numpy = ">=1.18.1"
-tensorflow-datasets = ">=2.1.0"
 jupyterlab = "*"
 seaborn = "*"
-jupyter = "*"
 
 [requires]
 python_version = "3.7"

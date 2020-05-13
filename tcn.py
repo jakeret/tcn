@@ -1,16 +1,25 @@
+from typing import List
+
 from tensorflow.keras import Model, Input
 from tensorflow.keras import layers
 
 
 class ResidualBlock(layers.Layer):
+    """
+    A TCN Residual block stacking the dilated causal convolution
+    :param filters: number of output filters in the convolution
+    :param kernel_size: length of the 1D convolution window
+    :param dilation_rate: dilation rate to use for dilated convolution
+    :param dropout_rate: dropout rate
+    :param activation: non linearity
+    """
 
     def __init__(self,
-                 filters,
-                 kernel_size,
-                 dilation_rate,
-                 padding='causal',
-                 dropout_rate=0.0,
-                 activation="relu",
+                 filters: int,
+                 kernel_size: int,
+                 dilation_rate: int,
+                 dropout_rate: float,
+                 activation: str,
                  **kwargs):
         super(ResidualBlock, self).__init__(**kwargs)
 
@@ -19,7 +28,7 @@ class ResidualBlock(layers.Layer):
         self.causal_conv_1 = layers.Conv1D(filters=self.filters,
                                            kernel_size=kernel_size,
                                            dilation_rate=dilation_rate,
-                                           padding=padding)
+                                           padding='causal')
         self.weight_norm_1 = layers.LayerNormalization()
         self.dropout_1 = layers.SpatialDropout1D(rate=dropout_rate)
         self.activation_1 = layers.Activation(activation)
@@ -27,7 +36,7 @@ class ResidualBlock(layers.Layer):
         self.causal_conv_2 = layers.Conv1D(filters=self.filters,
                                            kernel_size=kernel_size,
                                            dilation_rate=dilation_rate,
-                                           padding=padding)
+                                           padding='causal')
         self.weight_norm_2 = layers.LayerNormalization()
         self.dropout_2 = layers.SpatialDropout1D(rate=dropout_rate)
         self.activation_2 = layers.Activation(activation)
@@ -65,8 +74,25 @@ class ResidualBlock(layers.Layer):
 
 
 class TCN(layers.Layer):
+    """
+    The TCN-layer consisting of TCN-residual-blocks.
+    The dilation-rate grows exponentially with each residual block.
 
-    def __init__(self, filters, kernel_size, return_sequence=False, **kwargs):
+    :param filters: number of conv filters per residual block
+    :param kernel_size: size of the conv kernels
+    :param return_sequence: flag if the last sequence should be returned or only last element
+    :param dropout_rate: dropout rate, default: 0.0
+    :param activation: non linearity, default: relu
+    """
+
+    def __init__(self,
+                 filters: List[int],
+                 kernel_size: int,
+                 return_sequence:bool = False,
+                 dropout_rate:float = 0.0,
+                 activation:str = "relu",
+                 **kwargs):
+
         super(TCN, self).__init__(**kwargs)
         self.blocks = []
         self.depth = len(filters)
@@ -79,6 +105,8 @@ class TCN(layers.Layer):
                 ResidualBlock(filters=filters[i],
                               kernel_size=kernel_size,
                               dilation_rate=dilation_size,
+                              dropout_rate=dropout_rate,
+                              activation=activation,
                               name=f"residual_block_{i}")
             )
 
@@ -99,7 +127,25 @@ class TCN(layers.Layer):
         return 1 + 2 * (self.kernel_size - 1) * (2 ** self.depth - 1)
 
 
-def build_model(sequence_length, channels, filters, num_classes, kernel_size, return_sequence=False):
+def build_model(sequence_length: int,
+                channels: int,
+                filters: List[int],
+                num_classes:int,
+                kernel_size: int,
+                return_sequence:bool = False):
+    """
+    Builds a simple TCN model for a classification task
+
+    :param sequence_length: lenght of the input sequence
+    :param channels: number of channels of the input sequence
+    :param filters: number of conv filters per residual block
+    :param num_classes: number of output classes
+    :param kernel_size: size of the conv kernels
+    :param return_sequence: flag if the last sequence should be returned or only last element
+
+    :return: a tf keras model
+    """
+
     inputs = Input(shape=(sequence_length, channels), name="inputs")
     tcn_block = TCN(filters, kernel_size, return_sequence)
     x = tcn_block(inputs)

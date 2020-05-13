@@ -12,14 +12,14 @@ The implementation has been tested on the following task contained in this repos
 - Text classification on the IMDB movie dataset
 
 
-.. image:: https://raw.githubusercontent.com/jakeret/tf_unet/master/docs/tcn.png
+.. image:: https://raw.githubusercontent.com/jakeret/tcn/master/docs/tcn.png
    :alt: Temporal Convolutional Network
    :align: left
 
-.. image:: https://raw.githubusercontent.com/jakeret/tf_unet/master/docs/layers.png
+.. image:: https://raw.githubusercontent.com/jakeret/tcn/master/docs/layers.png
    :alt: Layers
    :align: left
 
-.. image:: https://raw.githubusercontent.com/jakeret/tf_unet/master/docs/residual_block.png
+.. image:: https://raw.githubusercontent.com/jakeret/tcn/master/docs/residual_block.png
    :alt: Residual block
    :align: left

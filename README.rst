@@ -11,7 +11,14 @@ The implementation has been tested on the following task contained in this repos
 - Copy memory
 - Text classification on the IMDB movie dataset
 
-The architectural elements of a TCN are a TCN-layer consisting of TCN-residual-blocks consisting of dilated causal convolution (from left to right)
+*Architectural elements in a TCN. (a) A dilated causal convolution with dilation factors d = 1, 2, 4 and filter size k = 3.  (b) TCN residual block.  (c) An example of residual connection in a TCN*
+
+.. image:: https://raw.githubusercontent.com/jakeret/tcn/master/docs/tcn_architecture.png
+   :alt: Temporal Convolutional Network
+   :align: left
+
+
+The corresponding elements in TensorBoard
 
 .. image:: https://raw.githubusercontent.com/jakeret/tcn/master/docs/tcn.png
    :alt: Temporal Convolutional Network

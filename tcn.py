@@ -124,7 +124,11 @@ class TCN(layers.Layer):
 
     @property
     def receptive_field_size(self):
-        return 1 + 2 * (self.kernel_size - 1) * (2 ** self.depth - 1)
+        return receptive_field_size(self.kernel_size, self.depth)
+
+
+def receptive_field_size(kernel_size, depth):
+    return 1 + 2 * (kernel_size - 1) * (2 ** depth - 1)
 
 
 def build_model(sequence_length: int,
